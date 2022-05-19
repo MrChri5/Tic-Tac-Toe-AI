@@ -10,23 +10,23 @@ namespace TicTacToeText
     {
         static bool twoPlayer = false;
         static bool aiFirst = true;
-        static int boardSize = 3;
-        static string gameLog = "v1";
-
+        //static string gameLog;
         static void Main(string[] args)
         {           
-            BoardLayout currentBoard = new BoardLayout(boardSize);
+            BoardLayout currentBoard = new BoardLayout();
             bool playerTurn = true;
             bool restart = true;
             bool settings = false;
             bool turnSwitch = false;
             string input = "";
+            //display instructions for te selection of game mode
             Console.WriteLine("Choose mode:");
             Console.WriteLine("1 - Two Player");
             Console.WriteLine("2 - AI Second");
             Console.WriteLine("3 - AI First");
             Console.WriteLine("4 - AI Alternate");
 
+            //loop reading the input line
             while ((input = Console.ReadLine()) != null && input != "exit")
             {
                 if (!settings && input!="")
@@ -40,17 +40,17 @@ namespace TicTacToeText
                             
                             break;
                         case '2':
-                            //human vs ai - human always first
+                            //Player vs AI - Player always first
                             twoPlayer = false;
                             aiFirst = false;
                             break;
                         case '3':
-                            // human vs ai - ai always first
+                            //Player vs AI - AI always first
                             twoPlayer = false;
                             aiFirst = true;
                             break;
                         case '4':
-                            // human vs ai - alternate
+                            //Player vs AI - alternate
                             twoPlayer = false;
                             aiFirst = false;
                             turnSwitch = true;
@@ -65,10 +65,10 @@ namespace TicTacToeText
                 if (restart)                   
                 // if restart flag is set, initialize the board
                 {
-                    currentBoard = new BoardLayout(boardSize);
+                    currentBoard = new BoardLayout();
                     playerTurn = true;
                     restart = false;
-                    gameLog = "v1" + DateTime.Now.ToString();
+                    //gameLog = "v1" + DateTime.Now.ToString();
                     DisplayBoard(currentBoard);
                     //alternate who goes first if set to alternate 
                     if (turnSwitch)
@@ -79,18 +79,22 @@ namespace TicTacToeText
                     //if restarting and AI is set to go first, play the AI's first turn
                     if (aiFirst && !twoPlayer)
                     {
+                        //determine the AI move
                         int moveAI = AIOppMove(currentBoard);
                         Console.WriteLine("AI played position " + moveAI);
                         Console.WriteLine();
+                        //double check the place the AI selected is valid
                         if (!currentBoard.validBlank(moveAI))
                         {
                             Console.WriteLine("AI error");
-                            gameLog += "AIerror";
-                            SaveLog();
+                            //gameLog += "AIerror";
+                            //SaveLog();
                             restart = true;
                             continue;
                         }
-                        gameLog += moveAI.ToString();
+                        //gameLog += moveAI.ToString();
+                        //set the AI piece and redisplay the board
+                        //no need to check if the AI won, it's their first turn
                         currentBoard.SetOpp(moveAI);
                         DisplayBoard(currentBoard);
                         Console.WriteLine("Your move");
@@ -98,22 +102,27 @@ namespace TicTacToeText
                     continue;
                 }
 
-                if (int.TryParse(input, out int inputNum) && inputNum <= boardSize * boardSize && inputNum > 0)
+                //read the number input by the Player for their turn
+                if (int.TryParse(input, out int inputNum) && inputNum <= currentBoard.Size * currentBoard.Size && inputNum > 0)
                 {
                     if (currentBoard.validBlank(inputNum))
                     {
+                        //process turn in a 2 player game
                         if (twoPlayer)
                         {
+                            //if Player 1 turn set Player 1 piece (Own)
                             if (playerTurn)
                             {
                                 currentBoard.SetOwn(inputNum);
                                 playerTurn = false;
                             }
+                            //if Player 2 turn set Player 2 piece (Opp)
                             else
                             {
                                 currentBoard.SetOpp(inputNum);
                                 playerTurn = true;
                             }
+                            //redisplay the board and whose turn is next
                             DisplayBoard(currentBoard);
                             if (playerTurn)
                             {
@@ -123,28 +132,35 @@ namespace TicTacToeText
                             {
                                 Console.WriteLine("Player O's turn");
                             }
+                            //check if either player won
                             restart = CheckGameEnd(currentBoard);
                         }
+                        //process Player turn in a Player verses AI game
                         if (!twoPlayer)
                         {
-                            gameLog += "H" + inputNum.ToString();
+                            //gameLog += "H" + inputNum.ToString();
+                            //set the Player piece, redisplay the board and check if the Player won
                             currentBoard.SetOwn(inputNum);
                             DisplayBoard(currentBoard);
                             restart = CheckGameEnd(currentBoard);
+                            //if Player did not win then process the AIs turn
                             if (!restart)
                             {
+                                //determine the AI move
                                 int moveAI = AIOppMove(currentBoard);
                                 Console.WriteLine("AI played position " + moveAI);
                                 Console.WriteLine();
+                                //double check the place the AI selected is valid
                                 if (!currentBoard.validBlank(moveAI))
                                 {
                                     Console.WriteLine("AI error");
-                                    gameLog += "AIerror";
-                                    SaveLog();
+                                    //gameLog += "AIerror";
+                                    //SaveLog();
                                     restart = true;
                                     continue;
                                 }
-                                gameLog += moveAI.ToString();
+                                //gameLog += moveAI.ToString();
+                                //set the AI piece, redisplay the board and check if the AI won
                                 currentBoard.SetOpp(moveAI);
                                 DisplayBoard(currentBoard);
                                 restart = CheckGameEnd(currentBoard);
@@ -154,58 +170,67 @@ namespace TicTacToeText
                                 }
                             }
                         }
+                        //reset if someone won the game
                         if (restart)
                         {
                             Console.WriteLine();
                             Console.WriteLine("Press ENTER to start a new game.");
                         }
                     }
+                    //display error if the selected place is not valid
                     else
                     {
                         Console.WriteLine("Space already taken.");
                     }
                     
                 }
+                //display error if input is invalid
                 else
                 {
                     Console.WriteLine("Not valid input");
                 }
             }
-            gameLog += "Exit";
-            SaveLog();
+            //gameLog += "Exit";
+            //SaveLog();
         }
 
+        //check if either player won
         static bool CheckGameEnd(BoardLayout currentBoard)
         {
+            //2 Player win messages
             string oppWinMsg = "O Wins";
             string ownWinMsg = "X Wins";
             string drawMsg = "You Drew";
 
             if (!twoPlayer)
             {
+                //Player verses AI win messages
                 ownWinMsg = "You Win";
                 oppWinMsg = "I Win!! =)";
                 drawMsg = "We Drew";
             }
+            //check the status of each of the lines on the board
             for (int i = 0; i < currentBoard.Status.Length; i++)
             {
                 switch (currentBoard.Status[i])
                 {
+                    //AI or Player 2 win case
                     case BoardLayout.StatusType.opp:
                         Console.WriteLine(oppWinMsg);
-                        gameLog += "AIWin";
-                        SaveLog();
+                        //gameLog += "AIWin";
+                        //SaveLog();
                         return true;
+                    //Player 1 win aase
                     case BoardLayout.StatusType.own:
                         Console.WriteLine(ownWinMsg);
-                        gameLog += "HWin";
-                        SaveLog();
+                        //gameLog += "HWin";
+                        //SaveLog();
                         return true;
                     default:
                         break;
                 }
             }
-            // check if there are any free spaces left
+            // check if there are any free spaces left, if not the the game ends in a draw
             for (int j=1; j <= currentBoard.Size * currentBoard.Size; j++)
             {
                 if (currentBoard.validBlank(j))
@@ -214,19 +239,24 @@ namespace TicTacToeText
                 }
             }
             Console.WriteLine(drawMsg);
-            gameLog += "Draw";
-            SaveLog();
+            //gameLog += "Draw";
+            //SaveLog();
             return true;
         }
 
+        //display the current board in the console
         static void DisplayBoard(BoardLayout currentBoard)
         {
+            //determine the length of each cell
+            //e.g. in a 4x4 board the single digit numbers need zero padding to be 2 characters
             int cellLength = (currentBoard.Size * currentBoard.Size).ToString().Length;
+            //grid character variables
             char gridVer = '│';
             char gridHor = '─';
             char gridInt = '┼';
             string gridLine = "";
 
+            //build the horizontal gridline
             for (int i = 0; i < currentBoard.Size; i++)
             {
                 gridLine += "".PadLeft(cellLength, gridHor);
@@ -236,18 +266,23 @@ namespace TicTacToeText
                 }
             }
 
+            //output the whole grid
             for (int i = 0; i < currentBoard.Size; i++)
             {
                 string printLine = "";
                 for (int j = 0; j < currentBoard.Size; j++)
                 {
+                    //build each cell number, zero padded
                     printLine += currentBoard.Layout[i, j].PadLeft(cellLength,'0');
+                    //add vertical line separators
                     if (j < currentBoard.Size - 1)
                     {
                         printLine += gridVer;
                     }
                 }
+                //output line of cell numbers
                 Console.WriteLine(printLine);
+                //output horizontal line separator
                 if (i < currentBoard.Size - 1)
                 {
                     Console.WriteLine(gridLine);
@@ -256,19 +291,20 @@ namespace TicTacToeText
             Console.WriteLine("");
         }
 
+        //determine the AIs next move
         static int AIOppMove(BoardLayout currentBoard)
         {
-            //compute the AI (opponent) move
-            // analyse each column/row/diag in turn, check for:
-            //1) can get 3 in a row
-            //2) opponent can get 3 , and should block            
+            // analyse each column/row/diagonal line in turn, check for the following:
+            //1) can get a complete line
+            //2) opponent can get a complete line, and should block            
             //3) can create fork
             //4) can block opponent creation of fork
             //5) prepare fork (check #7 for preferance)
             //6) any empty row
-            //7) set up 3 in a row
+            //7) set up a complete line
             //8) go anywhere
 
+            //variables for analysis
             int winAI = -1;
             int blockWin = -1;
             int[] setupFork = new int[currentBoard.Size * currentBoard.Status.Length];
@@ -281,12 +317,12 @@ namespace TicTacToeText
             int blockForkPtr = 0;
             int prepForkPtr = 0;
 
-            gameLog += "AI";
+            //gameLog += "AI";
                 
-            gameLog+="s";
+            //gameLog+="s";
             for (int i = 0; i < currentBoard.Status.Length; i++)
             {
-                gameLog += ((int)currentBoard.Status[i]).ToString();
+                //gameLog += ((int)currentBoard.Status[i]).ToString();
                 switch (currentBoard.Status[i])
                 {
                     //if a line is already completed return -1 as an error
@@ -342,16 +378,16 @@ namespace TicTacToeText
                         break;
                 }
             }
-            gameLog += "s";
+            //gameLog += "s";
 
             // if either player can complete a line, get the index of the move to win or block
             if (winAI != -1 || blockWin != -1)
             {
-                gameLog += "a";
+                //gameLog += "a";
                 int i = blockWin;
                 if (winAI != -1)
                 {
-                    gameLog += "b";
+                    //gameLog += "b";
                     i = winAI;
                 }
                 string[] winLine = currentBoard.Lines[i];
@@ -371,7 +407,7 @@ namespace TicTacToeText
                 {
                     if (i != j && setupFork[i] == setupFork[j])
                     {
-                        gameLog += "c";
+                        //gameLog += "c";
                         return setupFork[i];
                     }
                 }
@@ -384,7 +420,7 @@ namespace TicTacToeText
                 {
                     if (i != j && blockFork[i] == blockFork[j])
                     {
-                        gameLog += "d";
+                        //gameLog += "d";
                         return blockFork[i];
                     }
                 }
@@ -400,13 +436,13 @@ namespace TicTacToeText
                     {
                         for (int k = 0; k < currentBoard.Size; k++)
                         {
-                            // if move also sets up a line, choose it now other wise store it for later
+                            // if move also sets up a line, choose it now otherwise store it for later
                             if (int.TryParse(currentBoard.Lines[prepForkLine[j]][k], out prepForkNum) && 
                                 prepForkNum != setupFork[i] && 
                                 setupFork.Contains<int>(prepForkNum) && 
                                 currentBoard.validBlank(prepForkNum))
                             {
-                                gameLog += "f";
+                                //gameLog += "f";
                                 return prepForkNum;                    
                             }
                         }
@@ -416,7 +452,7 @@ namespace TicTacToeText
             //if a fork was prepared, choose it.
             if (currentBoard.validBlank(prepForkNum))
             {
-                gameLog += "g";
+                //gameLog += "g";
                 return prepForkNum;
             }
 
@@ -430,14 +466,14 @@ namespace TicTacToeText
                 {
                     rndMove = rnd.Next(prepFork.Length);
                 }
-                gameLog += "h";
+                //gameLog += "h";
                 return prepFork[rndMove];
             }
 
             //else make a move set up a line
             if(setupForkYes && currentBoard.validBlank(setupFork[0]))
             {
-                gameLog += "i";
+                //gameLog += "i";
                 return setupFork[0];
             }
 
@@ -446,21 +482,21 @@ namespace TicTacToeText
             {
              rndMove = rnd.Next(currentBoard.Size * currentBoard.Size)+1;
             }
-            gameLog += "j";
+            //gameLog += "j";
             return rndMove;
         }
 
-        static void SaveLog()
-        {
-            if (!twoPlayer)
-            {
-                //string filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\TicTacToeLog.txt";
-                string filePath = "TicTacToeLog.txt";
-                System.IO.StreamWriter logWriter = new System.IO.StreamWriter(filePath, System.IO.File.Exists(filePath));
-                logWriter.WriteLine(gameLog);
-                logWriter.Close();
-                gameLog = "v1" + DateTime.Now.ToString();
-            }
-        }
+        //static void SaveLog()
+        //{
+        //    if (!twoPlayer)
+        //    {
+        //        //string filePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\TicTacToeLog.txt";
+        //        string filePath = "TicTacToeLog.txt";
+        //        System.IO.StreamWriter logWriter = new System.IO.StreamWriter(filePath, System.IO.File.Exists(filePath));
+        //        logWriter.WriteLine(gameLog);
+        //        logWriter.Close();
+        //        gameLog = "v1" + DateTime.Now.ToString();
+        //    }
+        //}
     }
 }
