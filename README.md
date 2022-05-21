@@ -1,5 +1,5 @@
 # TicTacToeText
-**Noughts and Crosses (Tic-Tac-Toe) AI**
+**Tic-Tac-Toe (Noughts and Crosses) AI**
 
 This program is a console based game of Noughts and Crosses. 
 It can be played either as a 2 Player game or as 1 Player verses an AI.
